@@ -1,0 +1,89 @@
+# =============================================================================
+# HashiCorp Vault – Docker project .gitignore
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Vault persistent data
+# Contains encrypted secrets — NEVER commit to version control.
+# vault/data/** recursively ignores ALL subdirectories Vault creates at runtime
+# (core/, sys/, logical/, etc.). vault/data/* would only block the top level.
+# -----------------------------------------------------------------------------
+vault/data/**
+!vault/data/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Vault audit logs
+# May contain sensitive request/response metadata.
+# vault/logs/** mirrors the same recursive logic as vault/data/**.
+# -----------------------------------------------------------------------------
+vault/logs/**
+!vault/logs/.gitkeep
+
+# -----------------------------------------------------------------------------
+# Vault TLS certificates and keys (if added later)
+# -----------------------------------------------------------------------------
+vault/tls/
+*.pem
+*.crt
+*.key
+*.csr
+
+# -----------------------------------------------------------------------------
+# Vault token / credential files (if stored locally for convenience)
+# Covers common naming patterns people use when saving vault operator init output.
+# -----------------------------------------------------------------------------
+.vault-token
+vault-init*
+vault-keys*
+vault-root-token*
+init-output*
+unseal-keys*
+root-token*
+# Vault init output is sometimes saved as JSON
+vault*.json
+
+# -----------------------------------------------------------------------------
+# Environment variable files
+# .env.example IS committed — it documents available variables with no real values.
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------------------------------------
+# Docker Compose local override files
+# docker-compose.override.yml is a standard Docker Compose mechanism for local
+# customisations. It must never be committed as it commonly contains injected
+# credentials, host-specific paths, or debug settings.
+# -----------------------------------------------------------------------------
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# -----------------------------------------------------------------------------
+# Log files
+# Any *.log files written by Vault, Docker, or tooling on the host.
+# -----------------------------------------------------------------------------
+*.log
+
+# -----------------------------------------------------------------------------
+# OS-generated files
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------------------------------------
+# Editor / IDE directories
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# Backup archives
+# -----------------------------------------------------------------------------
+*.tar.gz
+*.zip
+*.bak
