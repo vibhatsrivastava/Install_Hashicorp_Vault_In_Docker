@@ -1,0 +1,71 @@
+# =============================================================================
+# Docker Compose – HashiCorp Vault (single-node, file storage, HTTP, UI on)
+# =============================================================================
+# Usage:
+#   docker compose up -d        # start in background
+#   docker compose logs -f vault # tail logs
+#   docker compose down          # stop (data persists in ./vault/data)
+# =============================================================================
+name: hashicorp-vault
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: hashicorp-vault
+    restart: unless-stopped
+
+    # -------------------------------------------------------------------------
+    # Port mapping
+    # Host port 8200 → container port 8200 (Vault API + UI)
+    # -------------------------------------------------------------------------
+    ports:
+      - "${VAULT_HOST_PORT}:8200"
+
+    # -------------------------------------------------------------------------
+    # IPC_LOCK capability
+    # Allows Vault to call mlock(2) to prevent secrets from being swapped to
+    # disk. This is a security best practice for all environments.
+    # -------------------------------------------------------------------------
+    cap_add:
+      - IPC_LOCK
+
+    # -------------------------------------------------------------------------
+    # Environment variables
+    # VAULT_ADDR  – tells the Vault CLI inside the container where to reach
+    #               the server (used when running vault commands via exec).
+    # -------------------------------------------------------------------------
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+
+    # -------------------------------------------------------------------------
+    # Bind mounts
+    # ./vault/config  → /vault/config   Vault HCL configuration
+    # ./vault/data    → /vault/data     Persistent encrypted storage
+    # ./vault/logs    → /vault/logs     Audit log output (optional)
+    #
+    # NOTE: /vault/config is NOT mounted read-only. The official hashicorp/vault
+    # entrypoint runs `chown vault:vault` on every mounted directory before
+    # starting the server. Mounting :ro would block that chown with
+    # "Read-only file system" and cause the container to crash-loop.
+    # -------------------------------------------------------------------------
+    volumes:
+      - ./vault/config:/vault/config
+      - ./vault/data:/vault/data
+      - ./vault/logs:/vault/logs
+
+    # -------------------------------------------------------------------------
+    # Command
+    # Start Vault in server mode with the supplied config file.
+    # -------------------------------------------------------------------------
+    command: vault server -config=/vault/config/vault.hcl
+
+    # -------------------------------------------------------------------------
+    # Health check
+    # Vault returns 501 when not yet initialized, 503 when sealed, 200 when
+    # healthy. All three are acceptable here because the container is running.
+    # -------------------------------------------------------------------------
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
