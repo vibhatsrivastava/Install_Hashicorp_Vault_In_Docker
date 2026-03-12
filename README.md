@@ -119,7 +119,7 @@ curl -s http://localhost:8200/v1/sys/health | python3 -m json.tool
 ### 1 — Exec into the container
 
 ```bash
-docker exec -it vault sh
+docker compose exec vault sh
 ```
 
 ### 2 — Set the Vault address (inside the container shell)
