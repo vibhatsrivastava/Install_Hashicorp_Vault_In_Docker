@@ -51,6 +51,7 @@ docker compose version
 
 ```
 .
+├── .env.example                # Environment variable template (copy to .env)
 ├── docker-compose.yml          # Docker Compose service definition
 └── vault/
     ├── config/
@@ -70,7 +71,27 @@ git clone https://github.com/vibhatsrivastava/Install_Hashicorp_Vault_In_Docker.
 cd Install_Hashicorp_Vault_In_Docker
 ```
 
-### 2 — Set correct permissions on the data directory
+### 2 — Configure environment variables
+
+Copy the provided template to create your local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+The default value in `.env.example` exposes Vault on port `8200`. Edit `.env`
+if you need a different host port:
+
+```bash
+# Change only if 8200 is already in use on your host
+VAULT_HOST_PORT=8200
+```
+
+> **Note:** `.env` is listed in `.gitignore` and will never be committed.
+> If you skip this step, Docker Compose falls back to port `8200` automatically
+> via the `${VAULT_HOST_PORT:-8200}` default in `docker-compose.yml`.
+
+### 3 — Set correct permissions on the data directory
 
 The `hashicorp/vault` container entrypoint runs `chown vault:vault` (UID `100`)
 on **every bind-mounted directory** before starting the server. All three
@@ -80,13 +101,13 @@ directories (`config`, `data`, `logs`) must be owned by UID `100` on the host:
 sudo chown -R 100:100 vault/
 ```
 
-### 3 — Start the container
+### 4 — Start the container
 
 ```bash
 docker compose up -d
 ```
 
-### 4 — Confirm the container is running
+### 5 — Confirm the container is running
 
 ```bash
 docker compose ps
@@ -99,7 +120,7 @@ You should see a line like:
 ==> Vault server started! Log data will stream in below:
 ```
 
-### 5 — Verify the API is reachable
+### 6 — Verify the API is reachable
 
 ```bash
 curl -s http://localhost:8200/v1/sys/health | python3 -m json.tool
