@@ -64,7 +64,7 @@ services:
     # healthy. All three are acceptable here because the container is running.
     # -------------------------------------------------------------------------
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8200/v1/sys/health?uninitcode=200&sealedcode=200"]
       interval: 10s
       timeout: 5s
       retries: 5
