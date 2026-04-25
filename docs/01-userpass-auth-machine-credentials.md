@@ -219,6 +219,14 @@ Expected output includes a row for `machine_credentials/`.
 
 ## Section 5 — Create the Policy
 
+> **Common gotcha — 403 on `vault kv` commands:** The `vault kv` CLI
+> subcommands (`put`, `get`, `patch`, `delete`, `list`) perform a preflight
+> `GET /v1/sys/internal/ui/mounts/<path>` request to auto-detect the KV
+> version. If the policy does not include `read` on
+> `sys/internal/ui/mounts/machine_credentials/*`, every `vault kv` command
+> fails with *"preflight capability check returned 403"* before it even touches
+> the secret. The policy below includes this path.
+
 Create a policy file on the Docker host, then write it to Vault.
 
 ### 5.1 — Write the policy HCL file
@@ -230,6 +238,13 @@ Create the file `machine-operators-policy.hcl` on your host:
 #
 # Grants full CRUD access to all secrets stored under the
 # machine_credentials KV v2 engine.
+
+# Allow the `vault kv` CLI to do its preflight mount-type lookup.
+# Without this, every `vault kv put/get/patch/delete/list` command returns
+# a 403 preflight error before it even reaches the secret path.
+path "sys/internal/ui/mounts/machine_credentials/*" {
+  capabilities = ["read"]
+}
 
 # Read, create, update, and delete secret data
 path "machine_credentials/data/*" {
