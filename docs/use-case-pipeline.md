@@ -39,6 +39,7 @@ to advanced.
 | 12 | `12-audit-logging.md` | **Audit Logging** — Enable the file audit device, trigger a set of operations, and parse the logs to demonstrate who accessed what and when. |
 | 13 | `13-kv-versioning-rollback.md` | **Secret Versioning & Rollback** — Use KV v2 version history to roll back a corrupted secret, and explore the difference between soft-delete and permanent destroy. |
 | 14 | `14-lease-renewal-revocation.md` | **Lease & Renewal Management** — Inspect active leases, renew them programmatically, and bulk-revoke all credentials issued to a compromised token. |
+| 15 | `15-identity-groups-rbac-policies.md` | **Identity Groups & RBAC Policies** — Create Vault identity entities and internal groups, assign multiple users to one or more groups, define tiered HCL policies (read-only, read-write, admin) using capability sets, attach each policy to the appropriate group, and verify that effective permissions reflect group membership without per-user policy assignments. |
 
 ---
 
@@ -46,9 +47,9 @@ to advanced.
 
 | # | File | Scenario Summary |
 |---|------|-----------------|
-| 15 | `15-vault-agent-sidecar.md` | **Vault Agent Sidecar** — Run Vault Agent alongside an app container; the agent auto-authenticates and writes secrets to a file the app reads — zero secrets in environment variables. |
-| 16 | `16-sentinel-policies.md` | **Sentinel Policies (EGP / RGP)** — Enforce fine-grained rules such as "only allow writes between 09:00–17:00" or "require MFA for secret deletion". |
-| 17 | `17-disaster-recovery-snapshots.md` | **Disaster Recovery** — Snapshot Vault state, simulate data loss, restore from the snapshot, and verify that all secrets survive the recovery. |
+| 16 | `16-vault-agent-sidecar.md` | **Vault Agent Sidecar** — Run Vault Agent alongside an app container; the agent auto-authenticates and writes secrets to a file the app reads — zero secrets in environment variables. |
+| 17 | `17-sentinel-policies.md` | **Sentinel Policies (EGP / RGP)** — Enforce fine-grained rules such as "only allow writes between 09:00–17:00" or "require MFA for secret deletion". |
+| 18 | `18-disaster-recovery-snapshots.md` | **Disaster Recovery** — Snapshot Vault state, simulate data loss, restore from the snapshot, and verify that all secrets survive the recovery. |
 
 ---
 
@@ -59,7 +60,7 @@ Start here if you are new to Vault beyond the basics:
 1. **02 — AppRole Auth** — immediately applicable to any automation or CI/CD pipeline.
 2. **05 — Dynamic Database Credentials** — solves the most common real-world secret-sprawl problem.
 3. **06 — Transit Engine** — introduces the encryption-as-a-service pattern with no key management in application code.
-4. **15 — Vault Agent Sidecar** — production-ready secret injection that eliminates secrets from environment variables entirely.
+4. **16 — Vault Agent Sidecar** — production-ready secret injection that eliminates secrets from environment variables entirely.
 
 Work through the remaining scenarios in any order that fits your use case once
 these four are solid.
