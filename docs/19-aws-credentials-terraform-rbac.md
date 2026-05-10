@@ -18,10 +18,17 @@ policy:
 6. Run **testing steps** to confirm developers can retrieve credentials and
    that write/delete operations are correctly blocked.
 
-> **Note:** This guide stores *static* IAM credentials (long-lived access key
-> pairs) in KV v2. For ephemeral, auto-rotated credentials see
+> **Note:** This guide uses **KV v2** instead of the **AWS secrets engine** to
+> demonstrate secure distribution of existing, long-lived IAM credentials.
+> The KV v2 approach is appropriate when you have pre-existing AWS access keys
+> that need to be shared securely among a team, or when your workflow does not
+> support dynamic credential rotation. The **AWS secrets engine** generates
+> ephemeral credentials on-demand with automatic rotation and revocation, but
+> requires Vault to have AWS API access to create and destroy IAM resources.
+> Use KV v2 for simple credential sharing and legacy workflows; use the AWS
+> secrets engine for production workloads requiring automatic lifecycle
+> management. For ephemeral, auto-rotated credentials see
 > [09-aws-azure-dynamic-credentials.md](./09-aws-azure-dynamic-credentials.md).
-> For production workloads, prefer dynamic credentials whenever possible.
 
 ---
 
