@@ -50,6 +50,7 @@ to advanced.
 | 16 | `16-vault-agent-sidecar.md` | **Vault Agent Sidecar** — Run Vault Agent alongside an app container; the agent auto-authenticates and writes secrets to a file the app reads — zero secrets in environment variables. |
 | 17 | `17-sentinel-policies.md` | **Sentinel Policies (EGP / RGP)** — Enforce fine-grained rules such as "only allow writes between 09:00–17:00" or "require MFA for secret deletion". |
 | 18 | `18-disaster-recovery-snapshots.md` | **Disaster Recovery** — Snapshot Vault state, simulate data loss, restore from the snapshot, and verify that all secrets survive the recovery. |
+| 19 | `19-aws-credentials-terraform-rbac.md` | **AWS Credentials for Terraform Developers** — Store static AWS access key and secret key in a KV v2 engine, define a read-only policy scoped to those credentials, create an internal identity group for Terraform developers, attach the policy to the group, and add users so they can securely retrieve AWS credentials when writing Terraform code. |
 
 ---
 

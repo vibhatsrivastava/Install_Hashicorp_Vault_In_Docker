@@ -34,7 +34,8 @@ Root Token you saved during `vault operator init`.
 | # | File | Summary |
 |---|------|---------|
 | 01 | [01-userpass-auth-machine-credentials.md](./01-userpass-auth-machine-credentials.md) | Enable the Userpass auth method, create a local user, organise users into an internal group, provision a KV v2 secrets engine at `machine_credentials`, define a least-privilege policy, attach the policy to the group, and validate the full workflow with testing steps. |
-| — | [use-case-pipeline.md](./use-case-pipeline.md) | Catalogue of all suggested scenario-based use cases (guides 02–17) covering auth methods, secrets engines, operations, governance, and real-world application patterns — with a recommended implementation order. |
+| 19 | [19-aws-credentials-terraform-rbac.md](./19-aws-credentials-terraform-rbac.md) | Store static AWS access key and secret key in a KV v2 engine at `aws_credentials`, define a read-only policy, create a `terraform-developers` internal group with the policy attached, add developer users to the group, and verify that members can retrieve credentials for Terraform while write and delete operations are blocked. |
+| — | [use-case-pipeline.md](./use-case-pipeline.md) | Catalogue of all suggested scenario-based use cases (guides 02–19) covering auth methods, secrets engines, operations, governance, and real-world application patterns — with a recommended implementation order. |
 
 ---
 
