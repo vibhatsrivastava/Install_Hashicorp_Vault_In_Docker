@@ -1,0 +1,6 @@
+# Deliberately expose Vault's HTTP API and UI on every host interface.
+# Use only on trusted networks and protect access with host firewall rules.
+services:
+  vault:
+    ports: !override
+      - "${VAULT_HOST_PORT:-8200}:8200"

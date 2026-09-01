@@ -1,306 +1,227 @@
 # Install HashiCorp Vault in Docker
 
-Install HashiCorp Vault as a Docker container on an Ubuntu host with persistent data using Docker Compose.
+Run a single-node HashiCorp Vault instance with Docker Compose for local
+learning and development. Vault data and audit logs persist in Docker-managed
+volumes, so the same setup works on Linux, macOS, and Windows hosts that run
+Linux containers.
 
----
+> **Warning:** Vault is served over HTTP without TLS. The default configuration
+> is bound to `localhost` and is suitable only for local learning and
+> development. Do not expose it to an untrusted network.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
-- [Repository Structure](#repository-structure)
 - [Setup](#setup)
 - [Initialize and Unseal Vault](#initialize-and-unseal-vault)
 - [Login and Verify](#login-and-verify)
 - [Accessing the Vault UI](#accessing-the-vault-ui)
+- [LAN Access](#lan-access)
+- [Persistence and Backup](#persistence-and-backup)
 - [Common Operations](#common-operations)
-- [Persistence and Data Safety](#persistence-and-data-safety)
 - [Security Notes](#security-notes)
-
----
 
 ## Overview
 
-| Parameter        | Value                          |
-|------------------|-------------------------------|
-| Image            | `hashicorp/vault:latest`       |
-| Storage Backend  | File (bind-mounted host path)  |
-| Transport        | HTTP (TLS disabled)            |
-| API / UI Port    | `8200`                         |
-| Web UI           | Enabled (`/ui`)                |
-| Restart Policy   | `unless-stopped`               |
-
----
+| Parameter | Value |
+|---|---|
+| Image | `hashicorp/vault:1.18.3` |
+| Storage backend | File storage in the Docker volume `vault-data` |
+| Audit log location | Docker volume `vault-logs` |
+| Transport | HTTP (TLS disabled) |
+| Default API/UI address | `http://localhost:8200` |
+| Web UI | Enabled at `/ui` |
 
 ## Prerequisites
 
-- Ubuntu host with **Docker** and **Docker Compose** installed.
-- Port `8200` open on the host firewall.
-- The user running Docker commands must be in the `docker` group (or use `sudo`).
+| Host platform | Required Docker runtime |
+|---|---|
+| Linux | Docker Engine and Docker Compose plugin 2.24.4 or later |
+| Windows | Docker Desktop configured for **Linux containers**, normally with the WSL 2 backend |
+| macOS | Docker Desktop or another Docker runtime backed by a Linux VM |
 
-To verify both tools are installed:
+Native Windows-container mode is not supported because `hashicorp/vault` is a
+Linux image. Confirm Docker is available:
 
-```bash
+```text
 docker --version
 docker compose version
 ```
 
----
-
-## Repository Structure
-
-```
-.
-├── .env.example                # Environment variable template (copy to .env)
-├── docker-compose.yml          # Docker Compose service definition
-└── vault/
-    ├── config/
-    │   └── vault.hcl           # Vault server configuration
-    ├── data/                   # Persistent encrypted storage (bind mount)
-    └── logs/                   # Audit log output (bind mount)
-```
-
----
+The default port is `8200`. Ensure it is unused on the local machine.
 
 ## Setup
 
-### 1 — Clone the repository
+### 1. Clone the repository
 
-```bash
+```text
 git clone https://github.com/vibhatsrivastava/Install_Hashicorp_Vault_In_Docker.git
 cd Install_Hashicorp_Vault_In_Docker
 ```
 
-### 2 — Configure environment variables
+### 2. Optionally select a host port
 
-Copy the provided template to create your local `.env` file:
+Docker Compose uses port `8200` when no `.env` file is present. To select a
+different local port, copy the template and edit `VAULT_HOST_PORT`.
 
 ```bash
 cp .env.example .env
 ```
 
-The default value in `.env.example` exposes Vault on port `8200`. Edit `.env`
-if you need a different host port:
-
-```bash
-# Change only if 8200 is already in use on your host
-VAULT_HOST_PORT=8200
+```powershell
+Copy-Item .env.example .env
 ```
 
-> **Note:** `.env` is listed in `.gitignore` and will never be committed.
-> If you skip this step, Docker Compose falls back to port `8200` automatically
-> via the `${VAULT_HOST_PORT:-8200}` default in `docker-compose.yml`.
+For example, set `VAULT_HOST_PORT=18200` in `.env`. The API/UI address then
+becomes `http://localhost:18200`.
 
-### 3 — Set correct permissions on the data directory
+### 3. Start Vault
 
-The `hashicorp/vault` container entrypoint runs `chown vault:vault` (UID `100`)
-on **every bind-mounted directory** before starting the server. All three
-directories (`config`, `data`, `logs`) must be owned by UID `100` on the host:
-
-```bash
-sudo chown -R 100:100 vault/
-```
-
-### 4 — Start the container
-
-```bash
+```text
 docker compose up -d
-```
-
-### 5 — Confirm the container is running
-
-```bash
 docker compose ps
 docker compose logs vault
 ```
 
-You should see a line like:
+Vault data and audit logs are stored in Docker-managed named volumes. No host
+`chown`, `sudo`, or UID/GID preparation is required.
 
-```
-==> Vault server started! Log data will stream in below:
-```
+### 4. Check the service state
 
-### 6 — Verify the API is reachable
-
-```bash
-curl -s http://localhost:8200/v1/sys/health | python3 -m json.tool
+```text
+docker compose exec vault vault status
 ```
 
-- **HTTP 501** — running but not yet initialized ✅  
-- **HTTP 503** — initialized but sealed  
-- **HTTP 200** — initialized, unsealed, and active  
-
----
+Before initialization, Vault reports `Initialized: false` and is healthy for
+this learning setup. The health endpoint returns HTTP `501` before
+initialization, `503` while sealed, and `200` while initialized and unsealed.
 
 ## Initialize and Unseal Vault
 
-> **This step is only required once** — the very first time Vault starts with an
-> empty data directory. Initialization generates the unseal keys and root token.
+Perform initialization once for a newly created `vault-data` volume.
 
-### 1 — Exec into the container
+### 1. Initialize Vault
 
-```bash
-docker compose exec vault sh
+```text
+docker compose exec vault vault operator init
 ```
 
-### 2 — Set the Vault address (inside the container shell)
+Save all unseal keys and the initial root token in a secure location. They
+cannot be recovered if lost and must never be committed to version control.
 
-```bash
-export VAULT_ADDR=http://127.0.0.1:8200
+### 2. Unseal Vault
+
+Run the command three times and supply a different unseal key each time:
+
+```text
+docker compose exec vault vault operator unseal
 ```
 
-### 3 — Initialize Vault
+Confirm Vault is unsealed:
 
-```bash
-vault operator init
+```text
+docker compose exec vault vault status
 ```
 
-**Sample output:**
-
-```
-Unseal Key 1: <key-1>
-Unseal Key 2: <key-2>
-Unseal Key 3: <key-3>
-Unseal Key 4: <key-4>
-Unseal Key 5: <key-5>
-
-Initial Root Token: hvs.<root-token>
-```
-
-> ⚠️ **Critical:** Save all 5 unseal keys and the root token in a secure
-> location (e.g. a secrets manager). They **cannot be recovered** if lost.
-> **Never commit them to version control.**
-
-### 4 — Unseal Vault (3 of 5 keys required)
-
-Run the following command **three times**, providing a different unseal key
-each time when prompted:
-
-```bash
-vault operator unseal   # provide Unseal Key 1
-vault operator unseal   # provide Unseal Key 2
-vault operator unseal   # provide Unseal Key 3
-```
-
-After the third key the output will show:
-
-```
-Sealed          false
-```
-
-### 5 — Exit the container shell
-
-```bash
-exit
-```
-
-> **Note:** Vault is automatically sealed again whenever the container restarts.
-> You must run `vault operator unseal` (3 keys) each time after a restart.
-
----
+After every container restart, Vault must be unsealed again unless you later
+configure an auto-unseal mechanism.
 
 ## Login and Verify
 
-You can interact with Vault either inside the container or from the host (with
-the Vault CLI installed on the host).
-
-### From inside the container
+Set the root token in the shell that runs Docker commands.
 
 ```bash
-docker exec -it vault sh
-export VAULT_ADDR=http://127.0.0.1:8200
-vault login <root-token>
-vault status
+export VAULT_TOKEN=<your-root-token>
 ```
 
-### From the host (Vault CLI installed)
-
-```bash
-export VAULT_ADDR=http://localhost:8200
-vault login <root-token>
-vault status
+```powershell
+$env:VAULT_TOKEN = "<your-root-token>"
 ```
 
-Expected `vault status` output when healthy:
+Pass the token explicitly to the container for authenticated commands:
 
-```
-Key             Value
----             -----
-Seal Type       shamir
-Initialized     true
-Sealed          false
-Total Shares    5
-Threshold       3
-Version         x.x.x
-Storage Type    file
-Cluster Name    vault-cluster-...
-Cluster ID      ...
-HA Enabled      false
+```text
+docker compose exec -e VAULT_TOKEN vault vault token lookup
 ```
 
----
+The `-e VAULT_TOKEN` option forwards the host-shell value into the container.
+Use it for authenticated Vault CLI commands in this repository's guides.
 
 ## Accessing the Vault UI
 
-Open a browser and navigate to:
+Open `http://localhost:8200/ui`, or substitute the value of
+`VAULT_HOST_PORT` when you selected a different port. Sign in with the root
+token or another configured authentication method.
 
+## LAN Access
+
+The default Compose file deliberately publishes Vault only to `localhost`.
+To expose it on all host interfaces on a trusted network, start it with the
+explicit LAN configuration:
+
+```text
+docker compose -f docker-compose.yml -f docker-compose.lan.yml up -d
 ```
-http://<host-ip>:8200/ui
+
+`docker-compose.lan.yml` uses the Compose `!override` tag, which requires
+Docker Compose 2.24.4 or later, to replace rather than duplicate the default
+loopback port mapping.
+
+Open `http://<host-name-or-ip>:<port>/ui`. Configure the host firewall to
+allow only trusted clients. Because this repository disables TLS, do not use
+this mode on an untrusted network; enable TLS and use a real hostname before
+using Vault beyond local development.
+
+## Persistence and Backup
+
+`docker compose down` stops the container but preserves `vault-data` and
+`vault-logs`. `docker compose down -v` permanently removes both volumes and
+therefore destroys the Vault state.
+
+List the volumes:
+
+```text
+docker volume ls
 ```
 
-Log in using the **root token** (or any other token/method you configure).
+Create a backup archive in the current directory. This command runs entirely
+inside Docker and works from Bash/zsh and PowerShell:
 
----
+```text
+docker run --rm -v hashicorp-vault_vault-data:/source:ro -v "${PWD}:/backup" alpine tar -czf /backup/vault-data-backup.tar.gz -C /source .
+```
 
-## Common Operations
+> **Note:** In PowerShell, replace `${PWD}` with `${PWD.Path}` if Docker does
+> not expand the path correctly. Keep backup archives outside the repository;
+> they contain encrypted Vault data and can still be sensitive.
 
-### Stop the container (data is preserved)
+To restore, stop Vault, create the volume if needed, and extract the archive:
 
-```bash
+```text
 docker compose down
-```
-
-### Pull the latest Vault image and recreate the container
-
-```bash
-docker compose pull
+docker volume create hashicorp-vault_vault-data
+docker run --rm -v hashicorp-vault_vault-data:/target -v "${PWD}:/backup" alpine sh -c "rm -rf /target/* && tar -xzf /backup/vault-data-backup.tar.gz -C /target"
 docker compose up -d
 ```
 
-### Tail Vault logs in real time
+## Common Operations
 
-```bash
+```text
+docker compose down
+docker compose up -d
 docker compose logs -f vault
+docker compose pull
+docker compose up -d
+docker compose exec vault vault operator seal
 ```
-
-### Re-seal Vault manually
-
-```bash
-vault operator seal
-```
-
----
-
-## Persistence and Data Safety
-
-Vault's encrypted data is stored on the **host filesystem** at `./vault/data`.
-This directory survives `docker compose down`, container recreation, and
-`docker compose pull` upgrades. Back up this directory regularly.
-
-```bash
-# Example: create a timestamped backup
-tar -czf vault-data-backup-$(date +%Y%m%d%H%M%S).tar.gz vault/data
-```
-
----
 
 ## Security Notes
 
 | Topic | Detail |
 |---|---|
-| `IPC_LOCK` capability | Added to the container so Vault can call `mlock(2)` and prevent secrets from being paged to disk. |
-| Unseal keys & root token | Store them in a dedicated secrets manager (AWS Secrets Manager, Azure Key Vault, etc.). Never store them in this repository. |
-| TLS | TLS is disabled in this setup. For production or internet-facing deployments, enable TLS by setting `tls_disable = 0` in `vault/config/vault.hcl` and providing a certificate and key. |
-| Root token | The root token has unrestricted access. Create scoped policies and tokens for day-to-day use, and revoke the root token when not needed. |
-| Firewall | Restrict access to port `8200` using `ufw` or cloud security groups to trusted hosts only. |
-
+| TLS | Disabled in `vault/config/vault.hcl`; appropriate only for local learning. |
+| Root token | Has unrestricted access. Store it securely and create scoped policies for ordinary use. |
+| Network binding | The default port publication is loopback-only. LAN exposure requires the explicit `docker-compose.lan.yml` file. |
+| Persistent volumes | `vault-data` contains encrypted Vault storage and `vault-logs` can contain sensitive audit metadata. Do not remove volumes or commit backup archives inadvertently. |
+| `IPC_LOCK` | Allows Vault to prevent secrets being swapped to disk when the Docker runtime permits it. |
