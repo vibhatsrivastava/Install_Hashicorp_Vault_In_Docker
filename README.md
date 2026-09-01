@@ -84,8 +84,9 @@ docker compose ps
 docker compose logs vault
 ```
 
-Vault data and audit logs are stored in Docker-managed named volumes. No host
-`chown`, `sudo`, or UID/GID preparation is required.
+Vault data and audit logs are stored in Docker-managed named volumes. The
+one-shot `vault-permissions` Compose service prepares their ownership for
+Vault, so no host `chown`, `sudo`, or UID/GID preparation is required.
 
 ### 4. Check the service state
 

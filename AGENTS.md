@@ -78,6 +78,7 @@ docs/
 
 - **No TLS in this setup** — `tls_disable = 1` in `vault.hcl`. Do not add TLS instructions without first noting it requires config changes.
 - **`/vault/config` is NOT mounted read-only** — the entrypoint runs `chown vault:vault` on startup; a `:ro` mount causes a crash-loop.
+- **Volume ownership:** `vault-permissions` runs once as root to make the managed data and log volumes writable by Vault (UID 100) before the server starts.
 - **Platform support:** Linux Docker Engine, Docker Desktop with Linux containers/WSL2 on Windows, and Docker Desktop or an equivalent Linux-VM runtime on macOS. Native Windows containers are unsupported.
 - **Networking:** `docker-compose.yml` binds HTTP to `127.0.0.1`; use `docker-compose.lan.yml` only for deliberate trusted-LAN exposure.
 - Secrets must never be committed to the repository. Docker volumes and backup archives can contain sensitive data.

@@ -8,10 +8,22 @@
 # =============================================================================
 name: hashicorp-vault
 services:
+  vault-permissions:
+    image: alpine:3.20
+    container_name: hashicorp-vault-permissions
+    user: "0:0"
+    command: sh -c "chown -R 100:100 /vault/data /vault/logs"
+    volumes:
+      - vault-data:/vault/data
+      - vault-logs:/vault/logs
+
   vault:
     image: hashicorp/vault:1.18.3
     container_name: hashicorp-vault
     restart: unless-stopped
+    depends_on:
+      vault-permissions:
+        condition: service_completed_successfully
 
     # -------------------------------------------------------------------------
     # Port mapping
@@ -48,7 +60,8 @@ services:
     # starting the server. Mounting :ro would block that chown with
     # "Read-only file system" and cause the container to crash-loop.
     # Docker-managed volumes avoid host filesystem ownership differences on
-    # Windows, macOS, and Linux for Vault's mutable data and audit logs.
+    # Windows, macOS, and Linux for Vault's mutable data and audit logs. The
+    # vault-permissions service initializes their ownership for Vault (UID 100).
     # -------------------------------------------------------------------------
     volumes:
       - ./vault/config:/vault/config
