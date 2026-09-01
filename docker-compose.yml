@@ -8,17 +8,30 @@
 # =============================================================================
 name: hashicorp-vault
 services:
+  vault-permissions:
+    image: alpine:3.20
+    container_name: hashicorp-vault-permissions
+    user: "0:0"
+    command: sh -c "chown -R 100:100 /vault/data /vault/logs"
+    volumes:
+      - vault-data:/vault/data
+      - vault-logs:/vault/logs
+
   vault:
-    image: hashicorp/vault:latest
+    image: hashicorp/vault:1.18.3
     container_name: hashicorp-vault
     restart: unless-stopped
+    depends_on:
+      vault-permissions:
+        condition: service_completed_successfully
 
     # -------------------------------------------------------------------------
     # Port mapping
-    # Host port 8200 → container port 8200 (Vault API + UI)
+    # Localhost port 8200 → container port 8200 (Vault API + UI).
+    # Use docker-compose.lan.yml only when deliberate LAN access is required.
     # -------------------------------------------------------------------------
     ports:
-      - "${VAULT_HOST_PORT:-8200}:8200"
+      - "127.0.0.1:${VAULT_HOST_PORT:-8200}:8200"
 
     # -------------------------------------------------------------------------
     # IPC_LOCK capability
@@ -34,23 +47,26 @@ services:
     #               the server (used when running vault commands via exec).
     # -------------------------------------------------------------------------
     environment:
-      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_ADDR: "http://127.0.0.1:8200"
 
     # -------------------------------------------------------------------------
-    # Bind mounts
+    # Storage mounts
     # ./vault/config  → /vault/config   Vault HCL configuration
-    # ./vault/data    → /vault/data     Persistent encrypted storage
-    # ./vault/logs    → /vault/logs     Audit log output (optional)
+    # vault-data      → /vault/data     Persistent encrypted storage
+    # vault-logs      → /vault/logs     Audit log output (optional)
     #
     # NOTE: /vault/config is NOT mounted read-only. The official hashicorp/vault
     # entrypoint runs `chown vault:vault` on every mounted directory before
     # starting the server. Mounting :ro would block that chown with
     # "Read-only file system" and cause the container to crash-loop.
+    # Docker-managed volumes avoid host filesystem ownership differences on
+    # Windows, macOS, and Linux for Vault's mutable data and audit logs. The
+    # vault-permissions service initializes their ownership for Vault (UID 100).
     # -------------------------------------------------------------------------
     volumes:
       - ./vault/config:/vault/config
-      - ./vault/data:/vault/data
-      - ./vault/logs:/vault/logs
+      - vault-data:/vault/data
+      - vault-logs:/vault/logs
 
     # -------------------------------------------------------------------------
     # Command
@@ -69,3 +85,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+volumes:
+  vault-data:
+  vault-logs:

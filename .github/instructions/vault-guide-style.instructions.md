@@ -19,8 +19,11 @@ Do **not** reorder, rename, or omit any of these sections.
 ## Prerequisites Block (always include verbatim)
 
 ```bash
-export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=<your-root-token>
+```
+
+```powershell
+$env:VAULT_TOKEN = "<your-root-token>"
 ```
 
 Verify Vault is reachable and unsealed:
@@ -31,17 +34,17 @@ docker exec -it hashicorp-vault vault status
 
 ## Command Style
 
-- **All** Vault CLI commands use `docker exec` — never assume a local Vault CLI.
-- Interactive commands: `docker exec -it hashicorp-vault vault <command>`
-- Non-interactive (piped input): `docker exec -i hashicorp-vault vault <command>`
-- Passing a user token inline: `docker exec -it hashicorp-vault env VAULT_TOKEN=$TOKEN vault <command>`
+- **All** Vault CLI commands use Docker Compose — never assume a local Vault CLI.
+- Authenticated commands: `docker compose exec -e VAULT_TOKEN vault vault <command>`.
+- Status and unseal commands: `docker compose exec vault vault <command>`.
+- Support Bash/zsh and PowerShell. Avoid POSIX-only pipelines, backslash continuations, and shell-specific variable expansion in shared command blocks.
 
 ## Security Notes
 
 Include a security callout whenever a command passes a secret on the CLI (passwords, tokens). Show the stdin alternative:
 
 ```bash
-echo 'password=<value>' | docker exec -i hashicorp-vault vault write <path> -
+docker compose exec -e VAULT_TOKEN vault vault write <path> password=<value>
 ```
 
 ## Formatting

@@ -3,23 +3,6 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Vault persistent data
-# Contains encrypted secrets — NEVER commit to version control.
-# vault/data/** recursively ignores ALL subdirectories Vault creates at runtime
-# (core/, sys/, logical/, etc.). vault/data/* would only block the top level.
-# -----------------------------------------------------------------------------
-vault/data/**
-!vault/data/.gitkeep
-
-# -----------------------------------------------------------------------------
-# Vault audit logs
-# May contain sensitive request/response metadata.
-# vault/logs/** mirrors the same recursive logic as vault/data/**.
-# -----------------------------------------------------------------------------
-vault/logs/**
-!vault/logs/.gitkeep
-
-# -----------------------------------------------------------------------------
 # Vault TLS certificates and keys (if added later)
 # -----------------------------------------------------------------------------
 vault/tls/

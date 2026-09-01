@@ -12,16 +12,19 @@ Start with the **Prerequisites** section inside each guide — every guide
 assumes Vault is already running and unsealed (see the top-level
 [README](../README.md) for installation and initialisation steps).
 
-Commands throughout all guides are written as `docker exec` calls against the
-container named **`hashicorp-vault`** (as defined in `docker-compose.yml`).
-You can run them from any terminal on the Docker host without installing the
-Vault CLI locally.
+Commands throughout all guides use `docker compose exec` against the `vault`
+service. You can run them from Bash/zsh on Linux or macOS and PowerShell on
+Windows without installing the Vault CLI locally.
 
-Set the following shell variable before running any command in these guides
-to avoid repeating it on every line:
+Set the root token in your host shell. Authenticated commands explicitly
+forward it into the container with `docker compose exec -e VAULT_TOKEN`.
 
 ```bash
-export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=<your-root-token>
+```
+
+```powershell
+$env:VAULT_TOKEN = "<your-root-token>"
 ```
 
 When a guide asks you to authenticate, replace `<root-token>` with the Initial
@@ -42,8 +45,8 @@ Root Token you saved during `vault operator init`.
 
 ## Adding New Documents
 
-1. Create the file in this folder using the next sequential number as a prefix
-   (e.g. `02-approle-auth.md`).
+1. Select the next planned, currently unwritten file in
+   [use-case-pipeline.md](./use-case-pipeline.md).
 2. Add a row to the **Document Index** table above with the file link and a
    one-sentence summary.
 3. Follow the same section structure used in existing guides (Overview →

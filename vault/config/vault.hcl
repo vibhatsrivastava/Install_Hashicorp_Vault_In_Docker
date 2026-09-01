@@ -28,13 +28,6 @@ listener "tcp" {
 }
 
 # ---------------------------------------------------------------------------
-# API Address
-# Used by Vault to construct self-referential redirect URIs and cluster
-# addresses. Must match the externally reachable address of this node.
-# ---------------------------------------------------------------------------
-api_addr = "http://0.0.0.0:8200"
-
-# ---------------------------------------------------------------------------
 # Web UI
 # Enables the built-in browser-based UI at /ui.
 # ---------------------------------------------------------------------------

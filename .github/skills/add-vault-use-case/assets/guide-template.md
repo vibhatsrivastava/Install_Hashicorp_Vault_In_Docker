@@ -17,25 +17,28 @@ This guide walks through <!-- one-sentence goal -->:
 |-------------|-------|
 | Vault container running | `docker compose up -d` (see top-level README) |
 | Vault initialised and unsealed | You have the **Initial Root Token** and at least one **unseal key** |
-| Docker host terminal access | Commands below use `docker exec` — no local Vault CLI needed |
+| Docker host terminal access | Bash/zsh or PowerShell; commands use Docker Compose — no local Vault CLI needed |
 
-Export these variables in your shell before running any command in this guide:
+Set the root token in your host shell before running authenticated commands:
 
 ```bash
-export VAULT_ADDR=http://localhost:8200
 export VAULT_TOKEN=<your-root-token>
+```
+
+```powershell
+$env:VAULT_TOKEN = "<your-root-token>"
 ```
 
 Verify Vault is reachable and unsealed:
 
 ```bash
-docker exec -it hashicorp-vault vault status
+docker compose exec vault vault status
 ```
 
 Expected output contains `Sealed: false`. If Vault is sealed, unseal it first:
 
 ```bash
-docker exec -it hashicorp-vault vault operator unseal <unseal-key>
+docker compose exec vault vault operator unseal <unseal-key>
 ```
 
 ---
@@ -45,13 +48,13 @@ docker exec -it hashicorp-vault vault operator unseal <unseal-key>
 <!-- Explain what this section accomplishes and why. -->
 
 ```bash
-docker exec -it hashicorp-vault vault <command>
+docker compose exec -e VAULT_TOKEN vault vault <command>
 ```
 
 Verify:
 
 ```bash
-docker exec -it hashicorp-vault vault <verify-command>
+docker compose exec -e VAULT_TOKEN vault vault <verify-command>
 ```
 
 Expected output: <!-- describe expected output -->
@@ -63,7 +66,7 @@ Expected output: <!-- describe expected output -->
 <!-- Explain what this section accomplishes and why. -->
 
 ```bash
-docker exec -it hashicorp-vault vault <command>
+docker compose exec -e VAULT_TOKEN vault vault <command>
 ```
 
 > **Security note:** Avoid passing secrets directly on the command line in
@@ -71,13 +74,13 @@ docker exec -it hashicorp-vault vault <command>
 > stdin:
 >
 > ```bash
-> echo 'key=value' | docker exec -i hashicorp-vault vault write <path> -
+> docker compose exec -e VAULT_TOKEN vault vault write <path> key=value
 > ```
 
 Verify:
 
 ```bash
-docker exec -it hashicorp-vault vault <verify-command>
+docker compose exec -e VAULT_TOKEN vault vault <verify-command>
 ```
 
 ---
@@ -96,7 +99,7 @@ These steps verify the entire workflow end-to-end.
 ### T.1 — <Positive test description>
 
 ```bash
-docker exec -it hashicorp-vault vault <command>
+docker compose exec -e VAULT_TOKEN vault vault <command>
 ```
 
 Expected: <!-- describe success output -->
@@ -104,7 +107,7 @@ Expected: <!-- describe success output -->
 ### T.2 — <Negative test description>
 
 ```bash
-docker exec -it hashicorp-vault vault <command>
+docker compose exec -e VAULT_TOKEN vault vault <command>
 ```
 
 Expected: `Code: 403` — confirms the policy boundary is correctly enforced.

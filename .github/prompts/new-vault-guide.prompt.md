@@ -20,11 +20,14 @@ Follow these rules exactly — they match every existing guide in this project:
    - `## Section N — <Topic>` — one section per major step; number them from 1
    - `## Testing` — step-by-step verification of the full workflow
    - `## Summary` — one-paragraph recap of what was accomplished
-3. **All commands** must use `docker exec -it hashicorp-vault vault …` — no local Vault CLI.
+3. **All commands** must use `docker compose exec`; authenticated commands must use `docker compose exec -e VAULT_TOKEN vault vault …` — no local Vault CLI.
 4. **Prerequisites block** must include the standard shell-variable export:
    ```bash
-   export VAULT_ADDR=http://localhost:8200
    export VAULT_TOKEN=<your-root-token>
+   ```
+   and the PowerShell equivalent:
+   ```powershell
+   $env:VAULT_TOKEN = "<your-root-token>"
    ```
 5. **Security notes** where relevant (e.g., avoid secrets on the command line, use stdin instead).
 6. Use the style of [`docs/01-userpass-auth-machine-credentials.md`](../docs/01-userpass-auth-machine-credentials.md) as the canonical reference.

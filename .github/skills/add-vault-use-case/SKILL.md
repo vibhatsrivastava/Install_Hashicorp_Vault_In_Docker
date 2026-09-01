@@ -38,8 +38,8 @@ Create `docs/<filename>` using the [guide template](./assets/guide-template.md) 
 
 Follow every rule in the attached file instruction `.github/instructions/vault-guide-style.instructions.md`:
 - Section order: Overview → Prerequisites → Section N… → Testing → Summary
-- All commands via `docker exec -it hashicorp-vault vault …`
-- Standard prerequisites export block (verbatim)
+- All authenticated commands via `docker compose exec -e VAULT_TOKEN vault vault …`
+- Standard Bash/zsh and PowerShell token setup blocks
 - Security callout wherever a secret appears on the CLI
 - End every section with a verification command
 - `> **Note:**` blockquotes for gotchas
